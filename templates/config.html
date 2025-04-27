@@ -106,7 +106,7 @@
         <h1>Configure Your Videos</h1>
         <p class="description">Set names and file paths for 12 videos. You can upload MP4 files or enter URLs directly.</p>
         
-        <form action="/save_config" method="post" id="configForm">
+        <form id="configForm" onsubmit="saveConfig(event)">
             {% for i in range(12) %}
             <div class="video-item">
                 <div class="video-number">Video {{ i+1 }}:</div>
@@ -136,86 +136,124 @@
             <div class="buttons">
                 <button type="submit">Save Configuration</button>
                 <div>
-                    <a href="/playback"><button type="button" class="continue">Continue to Playback</button></a>
+                    <button type="button" onclick="goToPlayback()" class="continue">Continue to Playback</button>
                     <a href="/stats"><button type="button" style="background-color: #ff9800; margin-left: 10px;">View Statistics</button></a>
                 </div>
             </div>
         </form>
     </div>
-
-    <script>
-        function handleFileUpload(inputElement, index) {
-            const file = inputElement.files[0];
-            if (!file) return;
-            
-            if (!file.name.endsWith('.mp4')) {
-                alert('Only MP4 files are allowed.');
-                return;
-            }
-            
-            const nameInput = document.getElementById(`name_${index}`);
-            const pathInput = document.getElementById(`path_${index}`);
-            const progressBar = document.getElementById(`progress_${index}`);
-            const progress = document.getElementById(`progress_bar_${index}`);
-            const status = document.getElementById(`status_${index}`);
-            
-            // If name is empty, use file name (without extension)
-            if (!nameInput.value) {
-                const fileName = file.name.split('.').slice(0, -1).join('.');
-                nameInput.value = fileName;
-            }
-            
-            // Prepare form data for upload
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Show progress bar and status
-            progressBar.style.display = 'block';
-            status.style.display = 'block';
-            status.textContent = 'Uploading...';
-            
-            // Create AJAX request
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload', true);
-            
-            // Progress handler
-            xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    const percentComplete = (e.loaded / e.total) * 100;
-                    progress.style.width = percentComplete + '%';
-                }
-            };
-            
-            // Response handler
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    pathInput.value = response.path;
-                    status.textContent = 'Upload complete!';
-                    
-                    // Hide progress after 2 seconds
-                    setTimeout(function() {
-                        progressBar.style.display = 'none';
-                        status.style.display = 'none';
-                    }, 2000);
-                } else {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        status.textContent = 'Error: ' + response.error;
-                    } catch(e) {
-                        status.textContent = 'Upload failed';
-                    }
-                }
-            };
-            
-            // Error handler
-            xhr.onerror = function() {
-                status.textContent = 'Upload failed';
-            };
-            
-            // Send the request
-            xhr.send(formData);
+<script>
+function handleFileUpload(inputElement, index) {
+    const file = inputElement.files[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.mp4')) {
+        alert('Only MP4 files are allowed.');
+        return;
+    }
+    
+    const nameInput = document.getElementById(`name_${index}`);
+    const pathInput = document.getElementById(`path_${index}`);
+    const progressBar = document.getElementById(`progress_${index}`);
+    const progress = document.getElementById(`progress_bar_${index}`);
+    const status = document.getElementById(`status_${index}`);
+    
+    // If name is empty, use file name (without extension)
+    if (!nameInput.value) {
+        const fileName = file.name.split('.').slice(0, -1).join('.');
+        nameInput.value = fileName;
+    }
+    
+    // Prepare form data for upload
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Show progress bar and status
+    progressBar.style.display = 'block';
+    status.style.display = 'block';
+    status.textContent = 'Uploading...';
+    
+    // Create AJAX request
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload', true);
+    
+    // Progress handler
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            progress.style.width = percentComplete + '%';
         }
-    </script>
+    };
+    
+    // Response handler
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            pathInput.value = response.path;
+            status.textContent = 'Upload complete!';
+            
+            // Hide progress after 2 seconds
+            setTimeout(function() {
+                progressBar.style.display = 'none';
+                status.style.display = 'none';
+            }, 2000);
+        } else {
+            try {
+                const response = JSON.parse(xhr.responseText);
+                status.textContent = 'Error: ' + response.error;
+            } catch(e) {
+                status.textContent = 'Upload failed';
+            }
+        }
+    };
+    
+    // Error handler
+    xhr.onerror = function() {
+        status.textContent = 'Upload failed';
+    };
+    
+    // Send the request
+    xhr.send(formData);
+}
+
+function saveConfig(event) {
+    event.preventDefault();
+    const videos = [];
+    for (let i = 0; i < 12; i++) {
+        const name = document.getElementById(`name_${i}`).value.trim();
+        const path = document.getElementById(`path_${i}`).value.trim();
+        // Include any video with both name and path, regardless of path format
+        if (name && path) {
+            videos.push({ name, path });
+        }
+    }
+    
+    fetch('/save_config', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ videos })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Configuration saved successfully!');
+        } else {
+            alert('Error saving configuration: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Error saving configuration: ' + error);
+    });
+}
+
+function goToPlayback() {
+    saveConfig({ preventDefault: () => {} });
+    setTimeout(() => {
+        window.location.href = '/playback';
+    }, 500);
+}
+</script>
 </body>
 </html>

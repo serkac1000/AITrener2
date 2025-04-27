@@ -98,19 +98,14 @@
         <div class="video-select">
             <label for="videoSelect">Select Video:</label>
             <select id="videoSelect">
-                {% if videos %}
-                    {% for video in videos %}
-                        <option value="{{ video['path'] }}" data-id="{{ video['id'] }}">{{ video['name'] }}</option>
-                    {% endfor %}
-                {% else %}
-                    <option value="">No videos configured</option>
-                {% endif %}
+                {% for video in videos %}
+                    <option value="{{ video.path }}">{{ video.name }}</option>
+                {% endfor %}
             </select>
         </div>
         
         <div class="video-container">
-            <video id="videoPlayer" controls>
-                <source src="" type="video/mp4">
+            <video id="videoPlayer" controls controlsList="nodownload">
                 Your browser does not support the video tag.
             </video>
         </div>
@@ -129,177 +124,134 @@
         </div>
         
         <div class="back-button">
-            <a href="/"><button>Back to Configuration</button></a>
-            <a href="/stats"><button style="background-color: #ff9800; margin-left: 10px;">View Statistics</button></a>
+            <a href="/"><button type="button">Back to Configuration</button></a>
+            <a href="/stats"><button type="button" style="background-color: #ff9800; margin-left: 10px;">View Statistics</button></a>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const videoPlayer = document.getElementById('videoPlayer');
-            const videoSelect = document.getElementById('videoSelect');
-            const playPauseButton = document.getElementById('playPauseButton');
-            const stopButton = document.getElementById('stopButton');
-            const speedSlider = document.getElementById('speedSlider');
-            const currentSpeed = document.getElementById('currentSpeed');
-            
-            // Playback tracking variables
-            let currentPlaybackId = null;
-            let playStartTime = null;
-            let currentVideoId = null;
-            let playbackDuration = 0;
-            
-            // Load the first video if available
-            if (videoSelect.options.length > 0 && videoSelect.options[0].value) {
-                videoPlayer.src = videoSelect.options[0].value;
-                currentVideoId = videoSelect.options[0].dataset.id;
+document.addEventListener('DOMContentLoaded', function() {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSelect = document.getElementById('videoSelect');
+    const playPauseButton = document.getElementById('playPauseButton');
+    const stopButton = document.getElementById('stopButton');
+    const speedSlider = document.getElementById('speedSlider');
+    const currentSpeed = document.getElementById('currentSpeed');
+    
+    // Video loading function with retry
+    async function loadVideo(src, retries = 3) {
+        console.log('Loading video:', src);
+        
+        try {
+            // Check if video exists first
+            const response = await fetch(src, { method: 'HEAD' });
+            if (!response.ok) {
+                throw new Error('Video file not found');
             }
             
-            // Start tracking playback
-            function startPlaybackTracking() {
-                if (!currentVideoId) return;
-                
-                const speed = videoPlayer.playbackRate;
-                
-                // Record start of playback
-                fetch(`/api/video/${currentVideoId}/start_playback`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ speed: speed })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        currentPlaybackId = data.playback_id;
-                        playStartTime = new Date();
-                        playbackDuration = 0;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error tracking playback:', error);
-                });
+            // Set video source and load
+            videoPlayer.src = src;
+            await videoPlayer.load();
+            console.log('Video loaded successfully');
+            
+        } catch (error) {
+            console.error('Error loading video:', error);
+            if (retries > 0) {
+                console.log(`Retrying... (${retries} attempts left)`);
+                setTimeout(() => loadVideo(src, retries - 1), 1000);
+            } else {
+                alert('Error loading video. Please try again or select a different video.');
             }
-            
-            // End tracking playback
-            function endPlaybackTracking() {
-                if (!currentPlaybackId) return;
-                
-                // Calculate duration
-                if (playStartTime) {
-                    const endTime = new Date();
-                    playbackDuration += Math.round((endTime - playStartTime) / 1000);
-                    playStartTime = null;
-                }
-                
-                // Update playback record
-                fetch(`/api/playback/${currentPlaybackId}/update`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        duration: playbackDuration,
-                        speed: videoPlayer.playbackRate
-                    })
-                })
-                .then(response => response.json())
-                .catch(error => {
-                    console.error('Error updating playback:', error);
-                });
-                
-                // Reset tracking
-                currentPlaybackId = null;
-                playbackDuration = 0;
-            }
-            
-            // Video selection change
-            videoSelect.addEventListener('change', function() {
-                const selectedVideo = videoSelect.value;
-                if (selectedVideo) {
-                    // End tracking for current video
-                    if (!videoPlayer.paused && !videoPlayer.ended) {
-                        endPlaybackTracking();
-                    }
-                    
-                    // Stop current video
-                    videoPlayer.pause();
-                    videoPlayer.currentTime = 0;
-                    playPauseButton.textContent = 'Play';
-                    
-                    // Load new video
-                    videoPlayer.src = selectedVideo;
-                    currentVideoId = videoSelect.options[videoSelect.selectedIndex].dataset.id;
-                }
-            });
-            
-            // Play/Pause button
-            playPauseButton.addEventListener('click', function() {
-                if (videoPlayer.paused || videoPlayer.ended) {
-                    videoPlayer.play();
-                    playPauseButton.textContent = 'Pause';
-                    
-                    // Start tracking
-                    startPlaybackTracking();
-                } else {
-                    videoPlayer.pause();
-                    playPauseButton.textContent = 'Play';
-                    
-                    // End tracking
-                    endPlaybackTracking();
-                }
-            });
-            
-            // Stop button
-            stopButton.addEventListener('click', function() {
-                // End tracking if playing
-                if (!videoPlayer.paused && !videoPlayer.ended) {
-                    endPlaybackTracking();
-                }
-                
-                videoPlayer.pause();
-                videoPlayer.currentTime = 0;
-                playPauseButton.textContent = 'Play';
-            });
-            
-            // Speed control
-            speedSlider.addEventListener('input', function() {
-                const speed = speedSlider.value / 100;
-                videoPlayer.playbackRate = speed;
-                currentSpeed.textContent = speed.toFixed(1) + 'x';
-                
-                // Update playback speed in tracking
-                if (currentPlaybackId && !videoPlayer.paused && !videoPlayer.ended) {
-                    fetch(`/api/playback/${currentPlaybackId}/update`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ speed: speed })
+        }
+    }
+    
+    // Load initial video if available
+    if (videoSelect.options.length > 0 && videoSelect.options[0].value) {
+        loadVideo(videoSelect.options[0].value);
+    }
+    
+    // Video selection change
+    videoSelect.addEventListener('change', function() {
+        const selectedVideo = videoSelect.value;
+        if (selectedVideo) {
+            videoPlayer.pause();
+            videoPlayer.currentTime = 0;
+            playPauseButton.textContent = 'Play';
+            loadVideo(selectedVideo);
+        }
+    });
+    
+    // Play/Pause button
+    playPauseButton.addEventListener('click', function() {
+        if (videoPlayer.paused || videoPlayer.ended) {
+            const playPromise = videoPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(_ => {
+                        playPauseButton.textContent = 'Pause';
+                        console.log('Video playback started');
                     })
                     .catch(error => {
-                        console.error('Error updating playback speed:', error);
+                        console.error('Error playing video:', error);
+                        alert('Error playing video: ' + error.message);
                     });
-                }
-            });
-            
-            // Handle video end
-            videoPlayer.addEventListener('ended', function() {
-                playPauseButton.textContent = 'Play';
-                
-                // End tracking
-                endPlaybackTracking();
-            });
-            
-            // Handle page unload (close or navigate away)
-            window.addEventListener('beforeunload', function() {
-                // End tracking if playing
-                if (!videoPlayer.paused && !videoPlayer.ended) {
-                    endPlaybackTracking();
-                }
-            });
-        });
-    </script>
+            }
+        } else {
+            videoPlayer.pause();
+            playPauseButton.textContent = 'Play';
+        }
+    });
+    
+    // Add detailed error handling
+    videoPlayer.addEventListener('error', function(e) {
+        console.error('Video error event:', e);
+        console.error('Video error object:', videoPlayer.error);
+        console.error('Current source:', videoPlayer.currentSrc);
+        
+        const error = videoPlayer.error;
+        let errorMessage = 'Unknown error';
+        
+        if (error) {
+            switch (error.code) {
+                case MediaError.MEDIA_ERR_ABORTED:
+                    errorMessage = 'You aborted the video playback.';
+                    break;
+                case MediaError.MEDIA_ERR_NETWORK:
+                    errorMessage = 'A network error caused the video download to fail.';
+                    break;
+                case MediaError.MEDIA_ERR_DECODE:
+                    errorMessage = 'The video playback was aborted due to a corruption problem or because the video used features your browser did not support.';
+                    break;
+                case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMessage = 'The video format is not supported or the video file could not be found.';
+                    break;
+            }
+        }
+        
+        alert('Error playing video: ' + errorMessage);
+    });
+
+    // Monitor video events
+    videoPlayer.addEventListener('loadstart', () => console.log('Video load started'));
+    videoPlayer.addEventListener('loadedmetadata', () => console.log('Video metadata loaded'));
+    videoPlayer.addEventListener('loadeddata', () => console.log('Video data loaded'));
+    videoPlayer.addEventListener('canplay', () => console.log('Video can play'));
+    videoPlayer.addEventListener('playing', () => console.log('Video is playing'));
+    videoPlayer.addEventListener('waiting', () => console.log('Video is waiting'));
+    videoPlayer.addEventListener('stalled', () => console.log('Video is stalled'));
+    
+    // Speed control
+    speedSlider.addEventListener('input', function() {
+        const speed = speedSlider.value / 100;
+        videoPlayer.playbackRate = speed;
+        currentSpeed.textContent = speed.toFixed(1) + 'x';
+    });
+    
+    // Handle video end
+    videoPlayer.addEventListener('ended', function() {
+        playPauseButton.textContent = 'Play';
+    });
+});
+</script>
 </body>
 </html>

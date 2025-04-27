@@ -1,0 +1,84 @@
+2025-04-27 13:30:44,671 - web_app - INFO - Accessing playback route
+2025-04-27 13:30:44,688 - web_app - INFO - Loaded 1 videos from config
+2025-04-27 13:30:44,688 - web_app - INFO - Loaded 1 videos from config
+2025-04-27 13:30:44,688 - web_app - INFO - Found 1 valid videos
+2025-04-27 13:30:44,688 - web_app - INFO - Found 1 valid videos
+2025-04-27 13:30:44,696 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:44] "GET /playback HTTP/1.1" 200 -
+2025-04-27 13:30:44,696 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:44] "GET /playback HTTP/1.1" 200 -
+2025-04-27 13:30:44,763 - web_app - INFO - Attempting to serve video: 9fa8cfac-e5d8-4d73-8784-d561ec63d845.mp4
+2025-04-27 13:30:44,763 - web_app - INFO - Attempting to serve video: 9fa8cfac-e5d8-4d73-8784-d561ec63d845.mp4
+2025-04-27 13:30:44,768 - web_app - INFO - Full path: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\static\uploads\9fa8cfac-e5d8-4d73-8784-d561ec63d845.mp4
+2025-04-27 13:30:44,768 - web_app - INFO - Full path: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\static\uploads\9fa8cfac-e5d8-4d73-8784-d561ec63d845.mp4
+2025-04-27 13:30:44,894 - web_app - INFO - Video file size: 907542 bytes
+2025-04-27 13:30:44,894 - web_app - INFO - Video file size: 907542 bytes
+2025-04-27 13:30:44,895 - web_app - INFO - Range request: bytes=0-
+2025-04-27 13:30:44,895 - web_app - INFO - Range request: bytes=0-
+2025-04-27 13:30:44,908 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:44] "[35m[1mGET /uploads/9fa8cfac-e5d8-4d73-8784-d561ec63d845.mp4 HTTP/1.1[0m" 206 -
+2025-04-27 13:30:44,908 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:44] "[35m[1mGET /uploads/9fa8cfac-e5d8-4d73-8784-d561ec63d845.mp4 HTTP/1.1[0m" 206 -
+2025-04-27 13:30:44,931 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:44] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:30:44,931 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:44] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:30:54,259 - web_app - INFO - Accessing root route
+2025-04-27 13:30:54,259 - web_app - INFO - Accessing root route
+2025-04-27 13:30:54,259 - web_app - INFO - Available templates: ['config.html', 'playback.html', 'stats.html']
+2025-04-27 13:30:54,259 - web_app - INFO - Available templates: ['config.html', 'playback.html', 'stats.html']
+2025-04-27 13:30:54,260 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:54] "GET / HTTP/1.1" 200 -
+2025-04-27 13:30:54,260 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:54] "GET / HTTP/1.1" 200 -
+2025-04-27 13:30:54,295 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:54] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:30:54,295 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:30:54] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:32:52,023 - web_app - INFO - File logging setup successfully at: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\flask_app.log
+2025-04-27 13:32:52,025 - web_app - INFO - File logging setup successfully at: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\flask_app.log
+2025-04-27 13:32:52,025 - web_app - INFO - File logging setup successfully at: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\flask_app.log
+2025-04-27 13:32:53,260 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-27 13:32:53,260 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-27 13:32:53,265 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-27 13:32:53,265 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-27 13:32:54,128 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 127.0.0.1:5000
+2025-04-27 13:32:54,128 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 127.0.0.1:5000
+2025-04-27 13:32:54,133 - web_app - INFO - Accessing root route
+2025-04-27 13:32:54,133 - web_app - INFO - Accessing root route
+2025-04-27 13:32:54,133 - web_app - INFO - Available templates: ['config.html', 'playback.html', 'stats.html']
+2025-04-27 13:32:54,133 - web_app - INFO - Available templates: ['config.html', 'playback.html', 'stats.html']
+2025-04-27 13:32:54,149 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:32:54] "GET / HTTP/1.1" 200 -
+2025-04-27 13:32:54,149 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:32:54] "GET / HTTP/1.1" 200 -
+2025-04-27 13:32:54,151 - urllib3.connectionpool - DEBUG - http://127.0.0.1:5000 "GET / HTTP/1.1" 200 21261
+2025-04-27 13:32:54,151 - urllib3.connectionpool - DEBUG - http://127.0.0.1:5000 "GET / HTTP/1.1" 200 21261
+2025-04-27 13:32:55,187 - web_app - INFO - Accessing root route
+2025-04-27 13:32:55,187 - web_app - INFO - Accessing root route
+2025-04-27 13:32:55,187 - web_app - INFO - Available templates: ['config.html', 'playback.html', 'stats.html']
+2025-04-27 13:32:55,187 - web_app - INFO - Available templates: ['config.html', 'playback.html', 'stats.html']
+2025-04-27 13:32:55,188 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:32:55] "GET / HTTP/1.1" 200 -
+2025-04-27 13:32:55,188 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:32:55] "GET / HTTP/1.1" 200 -
+2025-04-27 13:32:55,273 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:32:55] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:32:55,273 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:32:55] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:33:05,677 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:05] "POST /upload HTTP/1.1" 200 -
+2025-04-27 13:33:05,677 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:05] "POST /upload HTTP/1.1" 200 -
+2025-04-27 13:33:10,995 - web_app - INFO - Saved 1 videos to config
+2025-04-27 13:33:10,995 - web_app - INFO - Saved 1 videos to config
+2025-04-27 13:33:10,996 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:10] "POST /save_config HTTP/1.1" 200 -
+2025-04-27 13:33:10,996 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:10] "POST /save_config HTTP/1.1" 200 -
+2025-04-27 13:33:13,217 - web_app - INFO - Saved 1 videos to config
+2025-04-27 13:33:13,217 - web_app - INFO - Saved 1 videos to config
+2025-04-27 13:33:13,218 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:13] "POST /save_config HTTP/1.1" 200 -
+2025-04-27 13:33:13,218 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:13] "POST /save_config HTTP/1.1" 200 -
+2025-04-27 13:33:14,180 - web_app - INFO - Accessing playback route
+2025-04-27 13:33:14,180 - web_app - INFO - Accessing playback route
+2025-04-27 13:33:14,181 - web_app - INFO - Loaded 1 videos from config
+2025-04-27 13:33:14,181 - web_app - INFO - Loaded 1 videos from config
+2025-04-27 13:33:14,181 - web_app - INFO - Found 1 valid videos
+2025-04-27 13:33:14,181 - web_app - INFO - Found 1 valid videos
+2025-04-27 13:33:14,225 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:14] "GET /playback HTTP/1.1" 200 -
+2025-04-27 13:33:14,225 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:14] "GET /playback HTTP/1.1" 200 -
+2025-04-27 13:33:14,269 - web_app - INFO - Attempting to serve video: 0b25ac62-5c89-4a67-be68-ee167b16cbc0.mp4
+2025-04-27 13:33:14,269 - web_app - INFO - Attempting to serve video: 0b25ac62-5c89-4a67-be68-ee167b16cbc0.mp4
+2025-04-27 13:33:14,269 - web_app - INFO - Full path: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\static\uploads\0b25ac62-5c89-4a67-be68-ee167b16cbc0.mp4
+2025-04-27 13:33:14,269 - web_app - INFO - Full path: E:\NEW_PLAYER\Desktop version 1\video_player_desktop2\static\uploads\0b25ac62-5c89-4a67-be68-ee167b16cbc0.mp4
+2025-04-27 13:33:14,269 - web_app - INFO - Video file size: 907542 bytes
+2025-04-27 13:33:14,269 - web_app - INFO - Video file size: 907542 bytes
+2025-04-27 13:33:14,270 - web_app - INFO - Range request: bytes=0-
+2025-04-27 13:33:14,270 - web_app - INFO - Range request: bytes=0-
+2025-04-27 13:33:14,282 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:14] "[35m[1mGET /uploads/0b25ac62-5c89-4a67-be68-ee167b16cbc0.mp4 HTTP/1.1[0m" 206 -
+2025-04-27 13:33:14,282 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:14] "[35m[1mGET /uploads/0b25ac62-5c89-4a67-be68-ee167b16cbc0.mp4 HTTP/1.1[0m" 206 -
+2025-04-27 13:33:14,296 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:14] "GET /favicon.ico HTTP/1.1" 200 -
+2025-04-27 13:33:14,296 - werkzeug - INFO - 127.0.0.1 - - [27/Apr/2025 13:33:14] "GET /favicon.ico HTTP/1.1" 200 -

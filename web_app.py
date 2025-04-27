@@ -1,8 +1,13 @@
-from flask import Flask, render_template, send_from_directory, jsonify
+from flask import Flask, render_template, send_from_directory, jsonify, request, Response
 import os
 import sys
+import json
+import uuid
 import logging
+import re
+import mimetypes
 from logging.handlers import RotatingFileHandler
+from werkzeug.utils import secure_filename
 
 # Configure root logger to show all messages in console
 logging.basicConfig(
@@ -96,7 +101,27 @@ def config():
 def playback():
     app.logger.info('Accessing playback route')
     try:
-        return render_template('playback.html')
+        # Load video configurations from video_config.json
+        videos = []
+        config_file = os.path.join(static_dir, 'video_config.json')
+        
+        if os.path.exists(config_file):
+            try:
+                with open(config_file, 'r') as f:
+                    videos = json.load(f)
+                app.logger.info(f'Loaded {len(videos)} videos from config')
+            except Exception as e:
+                app.logger.error(f'Error loading video config: {e}')
+        
+        # Filter out empty entries
+        valid_videos = []
+        for video in videos:
+            if video.get('name') and video.get('path'):
+                # The path in config is already in the correct format (/uploads/...)
+                valid_videos.append(video)
+        
+        app.logger.info(f'Found {len(valid_videos)} valid videos')
+        return render_template('playback.html', videos=valid_videos)
     except Exception as e:
         app.logger.error(f'Error rendering template: {e}')
         return f'Error: {str(e)}', 500
@@ -110,13 +135,145 @@ def stats():
         app.logger.error(f'Error rendering template: {e}')
         return f'Error: {str(e)}', 500
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+        
+        if not file.filename.endswith('.mp4'):
+            return jsonify({'error': 'Only MP4 files are allowed'}), 400
+        
+        # Generate a unique filename
+        filename = str(uuid.uuid4()) + '.mp4'
+        upload_folder = os.path.join(static_dir, 'uploads')
+        
+        # Ensure upload directory exists
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        # Save the file
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+        
+        # Return the relative path that can be used in video src
+        relative_path = f'/uploads/{filename}'
+        return jsonify({'path': relative_path}), 200
+        
+    except Exception as e:
+        app.logger.error(f'Upload error: {e}')
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     try:
-        return send_from_directory('static/uploads', filename)
+        upload_folder = os.path.join(static_dir, 'uploads')
+        video_path = os.path.join(upload_folder, filename)
+        
+        app.logger.info(f'Attempting to serve video: {filename}')
+        app.logger.info(f'Full path: {video_path}')
+        
+        # Check if file exists
+        if not os.path.isfile(video_path):
+            app.logger.error(f'Video file not found: {video_path}')
+            return 'Video not found', 404
+            
+        # Get file size
+        file_size = os.path.getsize(video_path)
+        app.logger.info(f'Video file size: {file_size} bytes')
+        
+        # Handle range requests
+        range_header = request.headers.get('Range')
+        
+        # Set standard headers
+        headers = {
+            'Accept-Ranges': 'bytes',
+            'Content-Type': 'video/mp4',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+        
+        if range_header:
+            app.logger.info(f'Range request: {range_header}')
+            byte1, byte2 = 0, None
+            match = re.search(r'(\d+)-(\d*)', range_header)
+            groups = match.groups()
+            
+            if groups[0]:
+                byte1 = int(groups[0])
+            if groups[1]:
+                byte2 = int(groups[1])
+            
+            if byte2 is None:
+                byte2 = file_size - 1
+            length = byte2 - byte1 + 1
+            
+            with open(video_path, 'rb') as f:
+                f.seek(byte1)
+                data = f.read(length)
+            
+            headers.update({
+                'Content-Range': f'bytes {byte1}-{byte2}/{file_size}',
+                'Content-Length': str(length)
+            })
+            
+            return Response(
+                data,
+                206,
+                mimetype='video/mp4',
+                direct_passthrough=True,
+                headers=headers
+            )
+        
+        # If no range header, serve entire file
+        app.logger.info('Serving complete file')
+        
+        # Read file in chunks
+        def generate():
+            with open(video_path, 'rb') as f:
+                while True:
+                    chunk = f.read(8192)
+                    if not chunk:
+                        break
+                    yield chunk
+        
+        headers['Content-Length'] = str(file_size)
+        
+        return Response(
+            generate(),
+            200,
+            mimetype='video/mp4',
+            direct_passthrough=True,
+            headers=headers
+        )
+        
     except Exception as e:
-        app.logger.error(f'Error serving upload: {e}')
-        return f'Error: {str(e)}', 404
+        app.logger.error(f'Error serving upload: {str(e)}')
+        return f'Error: {str(e)}', 500
+
+@app.route('/save_config', methods=['POST'])
+def save_config():
+    try:
+        data = request.get_json()
+        videos = data.get('videos', [])
+        config_file = os.path.join(static_dir, 'video_config.json')
+        with open(config_file, 'w') as f:
+            json.dump(videos, f, indent=4)
+        app.logger.info(f'Saved {len(videos)} videos to config')
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        app.logger.error(f'Error saving config: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(static_dir, 'favicon.ico', mimetype='image/x-icon')
 
 @app.errorhandler(404)
 def not_found_error(error):
