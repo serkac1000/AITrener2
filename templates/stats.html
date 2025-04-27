@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player - Statistics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        p.description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .stats-table th, .stats-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .stats-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .stats-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .back-button {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .back-button button {
+            padding: 10px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .back-button button:hover {
+            opacity: 0.9;
+        }
+        .no-data {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Statistics</h1>
+        <p class="description">View playback statistics for your videos</p>
+        
+        <div id="statsContainer">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Video Name</th>
+                        <th>Play Count</th>
+                        <th>Last Played</th>
+                        <th>Total Duration (sec)</th>
+                        <th>Avg Speed</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTableBody">
+                    <tr>
+                        <td colspan="5" class="no-data">Loading statistics...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="back-button">
+            <a href="/"><button>Back to Configuration</button></a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchStatistics();
+        });
+        
+        function fetchStatistics() {
+            fetch('/api/videos/stats')
+                .then(response => response.json())
+                .then(data => {
+                    displayStatistics(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching statistics:', error);
+                    document.getElementById('statsTableBody').innerHTML = 
+                        '<tr><td colspan="5" class="no-data">Error loading statistics. Please try again.</td></tr>';
+                });
+        }
+        
+        function displayStatistics(stats) {
+            const tableBody = document.getElementById('statsTableBody');
+            
+            if (stats.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="no-data">No video statistics available</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            stats.forEach(video => {
+                html += `<tr>
+                    <td>${video.name}</td>
+                    <td>${video.play_count}</td>
+                    <td>${formatDate(video.last_played)}</td>
+                    <td>${video.total_duration}</td>
+                    <td>${formatSpeed(video.avg_speed)}</td>
+                </tr>`;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+        
+        function formatSpeed(speed) {
+            if (!speed) return '1.0x';
+            
+            return speed.toFixed(1) + 'x';
+        }
+    </script>
+</body>
+</html>

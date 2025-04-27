@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player - Playback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .video-container {
+            width: 100%;
+            margin: 20px 0;
+            background-color: black;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            display: block;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .slider {
+            flex-grow: 1;
+        }
+        .video-select {
+            margin-bottom: 15px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 100%;
+            max-width: 400px;
+        }
+        .back-button {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .back-button button {
+            background-color: #2196F3;
+        }
+        #currentSpeed {
+            min-width: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Playback</h1>
+        
+        <div class="video-select">
+            <label for="videoSelect">Select Video:</label>
+            <select id="videoSelect">
+                {% if videos %}
+                    {% for video in videos %}
+                        <option value="{{ video['path'] }}" data-id="{{ video['id'] }}">{{ video['name'] }}</option>
+                    {% endfor %}
+                {% else %}
+                    <option value="">No videos configured</option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <div class="video-container">
+            <video id="videoPlayer" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        
+        <div class="controls">
+            <div class="buttons">
+                <button id="playPauseButton">Play</button>
+                <button id="stopButton">Stop</button>
+            </div>
+            
+            <div class="speed-control">
+                <span>Playback Speed:</span>
+                <input type="range" id="speedSlider" class="slider" min="10" max="100" value="100">
+                <span id="currentSpeed">1.0x</span>
+            </div>
+        </div>
+        
+        <div class="back-button">
+            <a href="/"><button>Back to Configuration</button></a>
+            <a href="/stats"><button style="background-color: #ff9800; margin-left: 10px;">View Statistics</button></a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoPlayer = document.getElementById('videoPlayer');
+            const videoSelect = document.getElementById('videoSelect');
+            const playPauseButton = document.getElementById('playPauseButton');
+            const stopButton = document.getElementById('stopButton');
+            const speedSlider = document.getElementById('speedSlider');
+            const currentSpeed = document.getElementById('currentSpeed');
+            
+            // Playback tracking variables
+            let currentPlaybackId = null;
+            let playStartTime = null;
+            let currentVideoId = null;
+            let playbackDuration = 0;
+            
+            // Load the first video if available
+            if (videoSelect.options.length > 0 && videoSelect.options[0].value) {
+                videoPlayer.src = videoSelect.options[0].value;
+                currentVideoId = videoSelect.options[0].dataset.id;
+            }
+            
+            // Start tracking playback
+            function startPlaybackTracking() {
+                if (!currentVideoId) return;
+                
+                const speed = videoPlayer.playbackRate;
+                
+                // Record start of playback
+                fetch(`/api/video/${currentVideoId}/start_playback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ speed: speed })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentPlaybackId = data.playback_id;
+                        playStartTime = new Date();
+                        playbackDuration = 0;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error tracking playback:', error);
+                });
+            }
+            
+            // End tracking playback
+            function endPlaybackTracking() {
+                if (!currentPlaybackId) return;
+                
+                // Calculate duration
+                if (playStartTime) {
+                    const endTime = new Date();
+                    playbackDuration += Math.round((endTime - playStartTime) / 1000);
+                    playStartTime = null;
+                }
+                
+                // Update playback record
+                fetch(`/api/playback/${currentPlaybackId}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        duration: playbackDuration,
+                        speed: videoPlayer.playbackRate
+                    })
+                })
+                .then(response => response.json())
+                .catch(error => {
+                    console.error('Error updating playback:', error);
+                });
+                
+                // Reset tracking
+                currentPlaybackId = null;
+                playbackDuration = 0;
+            }
+            
+            // Video selection change
+            videoSelect.addEventListener('change', function() {
+                const selectedVideo = videoSelect.value;
+                if (selectedVideo) {
+                    // End tracking for current video
+                    if (!videoPlayer.paused && !videoPlayer.ended) {
+                        endPlaybackTracking();
+                    }
+                    
+                    // Stop current video
+                    videoPlayer.pause();
+                    videoPlayer.currentTime = 0;
+                    playPauseButton.textContent = 'Play';
+                    
+                    // Load new video
+                    videoPlayer.src = selectedVideo;
+                    currentVideoId = videoSelect.options[videoSelect.selectedIndex].dataset.id;
+                }
+            });
+            
+            // Play/Pause button
+            playPauseButton.addEventListener('click', function() {
+                if (videoPlayer.paused || videoPlayer.ended) {
+                    videoPlayer.play();
+                    playPauseButton.textContent = 'Pause';
+                    
+                    // Start tracking
+                    startPlaybackTracking();
+                } else {
+                    videoPlayer.pause();
+                    playPauseButton.textContent = 'Play';
+                    
+                    // End tracking
+                    endPlaybackTracking();
+                }
+            });
+            
+            // Stop button
+            stopButton.addEventListener('click', function() {
+                // End tracking if playing
+                if (!videoPlayer.paused && !videoPlayer.ended) {
+                    endPlaybackTracking();
+                }
+                
+                videoPlayer.pause();
+                videoPlayer.currentTime = 0;
+                playPauseButton.textContent = 'Play';
+            });
+            
+            // Speed control
+            speedSlider.addEventListener('input', function() {
+                const speed = speedSlider.value / 100;
+                videoPlayer.playbackRate = speed;
+                currentSpeed.textContent = speed.toFixed(1) + 'x';
+                
+                // Update playback speed in tracking
+                if (currentPlaybackId && !videoPlayer.paused && !videoPlayer.ended) {
+                    fetch(`/api/playback/${currentPlaybackId}/update`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ speed: speed })
+                    })
+                    .catch(error => {
+                        console.error('Error updating playback speed:', error);
+                    });
+                }
+            });
+            
+            // Handle video end
+            videoPlayer.addEventListener('ended', function() {
+                playPauseButton.textContent = 'Play';
+                
+                // End tracking
+                endPlaybackTracking();
+            });
+            
+            // Handle page unload (close or navigate away)
+            window.addEventListener('beforeunload', function() {
+                // End tracking if playing
+                if (!videoPlayer.paused && !videoPlayer.ended) {
+                    endPlaybackTracking();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
