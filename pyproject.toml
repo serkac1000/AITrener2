@@ -1,6 +1,18 @@
-[project]
-name = "repl-nix-workspace"
+
+[tool.poetry]
+name = "video-player-desktop"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
-dependencies = []
+description = "Video player desktop application"
+authors = ["Replit User"]
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+PyQt5 = "^5.15.9"
+PyQtWebEngine = "^5.15.6"
+Flask = "^3.0.0"
+opencv-python = "^4.8.0"
+requests = "^2.31.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
