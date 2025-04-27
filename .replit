@@ -1,4 +1,4 @@
-modules = ["nix"]
+modules = ["nix", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -8,7 +8,7 @@ packages = ["libGL", "libGLU", "pkg-config"]
 run = ["sh", "-c", "python web_app.py"]
 
 [workflows]
-runButton = "Run"
+runButton = "Run Python App"
 
 [[workflows.workflow]]
 name = "Run"
@@ -18,3 +18,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python web_app.py"
+
+[[workflows.workflow]]
+name = "Run Python App"
+author = 41995149
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
