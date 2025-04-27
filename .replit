@@ -2,6 +2,7 @@ modules = ["nix"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["libGL", "libGLU", "pkg-config"]
 
 [deployment]
 run = ["sh", "-c", "python web_app.py"]
