@@ -2,10 +2,19 @@
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Serve Static Files"
+runButton = "Serve App"
 
 [[workflows.workflow]]
 name = "Serve Static Files"
+author = 41888473
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 -m http.server 5000 --bind 0.0.0.0 --directory dist"
+
+[[workflows.workflow]]
+name = "Serve App"
 author = 41888473
 mode = "sequential"
 
